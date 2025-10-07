@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>첼로 아카데미</title>
+    <style>
+        /* 첼로 아카데미 앱 스타일 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .app {
+            min-height: 100vh;
+        }
+
+        .app-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 2rem;
+            height: 2rem;
+            color: #667eea;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .progress-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+
+        .progress-bar {
+            width: 200px;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+
+        .lessons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .lesson-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .lesson-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .lesson-card.selected {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .lesson-card.completed {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+
+        .lesson-card.today {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+
+        .lesson-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .lesson-week {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .week-icon {
+            width: 1rem;
+            height: 1rem;
+            color: #667eea;
+        }
+
+        .lesson-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .completion-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+
+        .completion-toggle:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .check-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #9ca3af;
+        }
+
+        .check-icon.completed {
+            color: #10b981;
+        }
+
+        .lesson-date {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .date-icon {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .lesson-content {
+            margin-bottom: 1rem;
+        }
+
+        .lesson-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .lesson-composer {
+            font-size: 0.875rem;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .lesson-type {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .type-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .type-badge.suite {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .type-badge.sonata {
+            background: #fce7f3;
+            color: #be185d;
+        }
+
+        .type-badge.piece {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .type-badge.rehearsal {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .type-badge.concert {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .lesson-detail {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 120px;
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            line-height: 1.3;
+            flex: 1;
+            margin-right: 1rem;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .close-button:hover {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .detail-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .detail-info p {
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .detail-info strong {
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .action-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-button:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .action-button.completed {
+            background: #10b981;
+        }
+
+        .action-button.completed:hover {
+            background: #059669;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .lesson-detail {
+                position: static;
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+            
+            .progress-section {
+                align-items: flex-start;
+                width: 100%;
+            }
+            
+            .progress-bar {
+                width: 100%;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .lessons-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .lesson-detail {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo h1 {
+                font-size: 1.5rem;
+            }
+            
+            .lesson-card {
+                padding: 1rem;
+            }
+            
+            .lesson-title {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg class="logo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                    </svg>
+                    <h1>첼로 아카데미</h1>
+                </div>
+                <div class="progress-section">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0 / 16 강의 완료 (0%)</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="lessons-grid" id="lessonsGrid">
+                <!-- 강의 카드들이 여기에 동적으로 생성됩니다 -->
+            </div>
+
+            <div class="lesson-detail hidden" id="lessonDetail">
+                <div class="detail-header">
+                    <h2 id="detailTitle"></h2>
+                    <button class="close-button" onclick="closeDetail()">×</button>
+                </div>
+                <div class="detail-content">
+                    <div class="detail-info" id="detailInfo">
+                        <!-- 상세 정보가 여기에 표시됩니다 -->
+                    </div>
+                    <div class="detail-actions">
+                        <button class="action-button" id="actionButton" onclick="toggleCompletion()"></button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 첼로 아카데미 강의 일정 데이터
+        const lessons = [
+            {
+                id: 1,
+                week: 1,
+                date: '2025-08-06',
+                title: 'Cello Suite 1 BWV 1007 Prelude 1, Allegro Moderato 알레그로 모데라토 1',
+                composer: 'J.S. Bach',
+                type: 'suite',
+                completed: false,
+                description: '바흐의 첫 번째 첼로 모음곡 프렐류드 첫 번째 부분을 학습합니다.'
+            },
+            {
+                id: 2,
+                week: 2,
+                date: '2025-08-13',
+                title: 'Cello Suite 1 BWV 1007 Prelude 1, Allegro Moderato 알레그로 모데라토 2',
+                composer: 'J.S. Bach',
+                type: 'suite',
+                completed: false,
+                description: '바흐의 첫 번째 첼로 모음곡 프렐류드 두 번째 부분을 학습합니다.'
+            },
+            {
+                id: 3,
+                week: 3,
+                date: '2025-08-20',
+                title: '브레발 첼로 소나타 1',
+                composer: 'Jean-Baptiste Bréval',
+                type: 'sonata',
+                completed: false,
+                description: '브레발의 첫 번째 첼로 소나타를 학습합니다.'
+            },
+            {
+                id: 4,
+                week: 4,
+                date: '2025-08-27',
+                title: '브레발 첼로 소나타 2',
+                composer: 'Jean-Baptiste Bréval',
+                type: 'sonata',
+                completed: false,
+                description: '브레발의 두 번째 첼로 소나타를 학습합니다.'
+            },
+            {
+                id: 5,
+                week: 5,
+                date: '2025-09-03',
+                title: '브레발 첼로 소나타 3',
+                composer: 'Jean-Baptiste Bréval',
+                type: 'sonata',
+                completed: false,
+                description: '브레발의 세 번째 첼로 소나타를 학습합니다.'
+            },
+            {
+                id: 6,
+                week: 6,
+                date: '2025-09-10',
+                title: '브레발 첼로 소나타 4',
+                composer: 'Jean-Baptiste Bréval',
+                type: 'sonata',
+                completed: false,
+                description: '브레발의 네 번째 첼로 소나타를 학습합니다.'
+            },
+            {
+                id: 7,
+                week: 7,
+                date: '2025-09-17',
+                title: '마르첼로 첼로 소나타 1',
+                composer: 'Benedetto Marcello',
+                type: 'sonata',
+                completed: false,
+                description: '마르첼로의 첫 번째 첼로 소나타를 학습합니다.'
+            },
+            {
+                id: 8,
+                week: 8,
+                date: '2025-09-24',
+                title: '마르첼로 첼로 소나타 2',
+                composer: 'Benedetto Marcello',
+                type: 'sonata',
+                completed: false,
+                description: '마르첼로의 두 번째 첼로 소나타를 학습합니다.'
+            },
+            {
+                id: 9,
+                week: 9,
+                date: '2025-10-01',
+                title: '마르첼로 첼로 소나타 3',
+                composer: 'Benedetto Marcello',
+                type: 'sonata',
+                completed: false,
+                description: '마르첼로의 세 번째 첼로 소나타를 학습합니다.'
+            },
+            {
+                id: 10,
+                week: 10,
+                date: '2025-10-15',
+                title: '마르첼로 첼로 소나타 4',
+                composer: 'Benedetto Marcello',
+                type: 'sonata',
+                completed: false,
+                description: '마르첼로의 네 번째 첼로 소나타를 학습합니다.'
+            },
+            {
+                id: 11,
+                week: 11,
+                date: '2025-10-22',
+                title: '바흐 무반주 첼로 모음곡 Minuets 1',
+                composer: 'J.S. Bach',
+                type: 'suite',
+                completed: false,
+                description: '바흐의 무반주 첼로 모음곡 미뉴엣 첫 번째 부분을 학습합니다.'
+            },
+            {
+                id: 12,
+                week: 12,
+                date: '2025-10-29',
+                title: '바흐 무반주 첼로 모음곡 Minuets 2',
+                composer: 'J.S. Bach',
+                type: 'suite',
+                completed: false,
+                description: '바흐의 무반주 첼로 모음곡 미뉴엣 두 번째 부분을 학습합니다.'
+            },
+            {
+                id: 13,
+                week: 13,
+                date: '2025-11-05',
+                title: 'Chanson Triste 1',
+                composer: 'Pyotr Ilyich Tchaikovsky',
+                type: 'piece',
+                completed: false,
+                description: '차이코프스키의 슬픈 노래 첫 번째 부분을 학습합니다.'
+            },
+            {
+                id: 14,
+                week: 14,
+                date: '2025-11-12',
+                title: 'Chanson Triste 2',
+                composer: 'Pyotr Ilyich Tchaikovsky',
+                type: 'piece',
+                completed: false,
+                description: '차이코프스키의 슬픈 노래 두 번째 부분을 학습합니다.'
+            },
+            {
+                id: 15,
+                week: 15,
+                date: '2025-11-19',
+                title: '리허설',
+                composer: 'Various',
+                type: 'rehearsal',
+                completed: false,
+                description: '클래스 연주회를 위한 전체 리허설을 진행합니다.'
+            },
+            {
+                id: 16,
+                week: 16,
+                date: '2025-11-26',
+                title: '클래스 연주회',
+                composer: 'Various',
+                type: 'concert',
+                completed: false,
+                description: '16주간의 학습 성과를 보여주는 클래스 연주회입니다.'
+            }
+        ];
+
+        let completedLessons = new Set();
+        let selectedLesson = null;
+
+        // 날짜 포맷팅 함수
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                weekday: 'short' 
+            };
+            return date.toLocaleDateString('ko-KR', options);
+        }
+
+        // 강의 상태 확인 함수
+        function getLessonStatus(lesson) {
+            const lessonDate = new Date(lesson.date);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            lessonDate.setHours(0, 0, 0, 0);
+            
+            if (completedLessons.has(lesson.id)) {
+                return 'completed';
+            } else if (lessonDate < today) {
+                return 'past';
+            } else if (lessonDate > today) {
+                return 'upcoming';
+            } else {
+                return 'today';
+            }
+        }
+
+        // 상태 색상 반환 함수
+        function getStatusColor(status) {
+            switch (status) {
+                case 'completed': return '#10b981';
+                case 'today': return '#f59e0b';
+                case 'past': return '#6b7280';
+                case 'upcoming': return '#3b82f6';
+                default: return '#6b7280';
+            }
+        }
+
+        // 상태 텍스트 반환 함수
+        function getStatusText(status) {
+            switch (status) {
+                case 'completed': return '완료';
+                case 'today': return '오늘';
+                case 'past': return '지난 강의';
+                case 'upcoming': return '예정';
+                default: return '';
+            }
+        }
+
+        // 타입 텍스트 반환 함수
+        function getTypeText(type) {
+            switch (type) {
+                case 'suite': return '모음곡';
+                case 'sonata': return '소나타';
+                case 'piece': return '곡';
+                case 'rehearsal': return '리허설';
+                case 'concert': return '연주회';
+                default: return type;
+            }
+        }
+
+        // 진행률 업데이트 함수
+        function updateProgress() {
+            const progressPercentage = (completedLessons.size / lessons.length) * 100;
+            document.getElementById('progressFill').style.width = `${progressPercentage}%`;
+            document.getElementById('progressText').textContent = 
+                `${completedLessons.size} / ${lessons.length} 강의 완료 (${Math.round(progressPercentage)}%)`;
+        }
+
+        // 강의 카드 생성 함수
+        function createLessonCard(lesson) {
+            const status = getLessonStatus(lesson);
+            const isSelected = selectedLesson?.id === lesson.id;
+            
+            return `
+                <div class="lesson-card ${status} ${isSelected ? 'selected' : ''}" onclick="selectLesson(${lesson.id})">
+                    <div class="lesson-header">
+                        <div class="lesson-week">
+                            <svg class="week-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>${lesson.week}주차</span>
+                        </div>
+                        <div class="lesson-status">
+                            <span class="status-badge" style="background-color: ${getStatusColor(status)}">
+                                ${getStatusText(status)}
+                            </span>
+                            <button class="completion-toggle" onclick="event.stopPropagation(); toggleLessonCompletion(${lesson.id})">
+                                ${completedLessons.has(lesson.id) ? 
+                                    '<svg class="check-icon completed" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' : 
+                                    '<svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path></svg>'
+                                }
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="lesson-date">
+                        <svg class="date-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>${formatDate(lesson.date)}</span>
+                    </div>
+
+                    <div class="lesson-content">
+                        <h3 class="lesson-title">${lesson.title}</h3>
+                        <p class="lesson-composer">${lesson.composer}</p>
+                    </div>
+
+                    <div class="lesson-type">
+                        <span class="type-badge ${lesson.type}">
+                            ${getTypeText(lesson.type)}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 강의 목록 렌더링 함수
+        function renderLessons() {
+            const lessonsGrid = document.getElementById('lessonsGrid');
+            lessonsGrid.innerHTML = lessons.map(lesson => createLessonCard(lesson)).join('');
+        }
+
+        // 강의 선택 함수
+        function selectLesson(lessonId) {
+            selectedLesson = lessons.find(lesson => lesson.id === lessonId);
+            showDetail();
+        }
+
+        // 상세보기 표시 함수
+        function showDetail() {
+            if (!selectedLesson) return;
+            
+            const detailElement = document.getElementById('lessonDetail');
+            const titleElement = document.getElementById('detailTitle');
+            const infoElement = document.getElementById('detailInfo');
+            const buttonElement = document.getElementById('actionButton');
+            
+            titleElement.textContent = selectedLesson.title;
+            infoElement.innerHTML = `
+                <p><strong>작곡가:</strong> ${selectedLesson.composer}</p>
+                <p><strong>일정:</strong> ${formatDate(selectedLesson.date)}</p>
+                <p><strong>주차:</strong> ${selectedLesson.week}주차</p>
+                <p><strong>설명:</strong> ${selectedLesson.description}</p>
+            `;
+            
+            const isCompleted = completedLessons.has(selectedLesson.id);
+            buttonElement.textContent = isCompleted ? '완료 취소' : '완료 표시';
+            buttonElement.className = `action-button ${isCompleted ? 'completed' : ''}`;
+            
+            detailElement.classList.remove('hidden');
+            renderLessons(); // 선택 상태 업데이트
+        }
+
+        // 상세보기 닫기 함수
+        function closeDetail() {
+            selectedLesson = null;
+            document.getElementById('lessonDetail').classList.add('hidden');
+            renderLessons(); // 선택 상태 업데이트
+        }
+
+        // 완료 상태 토글 함수
+        function toggleLessonCompletion(lessonId) {
+            if (completedLessons.has(lessonId)) {
+                completedLessons.delete(lessonId);
+            } else {
+                completedLessons.add(lessonId);
+            }
+            updateProgress();
+            renderLessons();
+            
+            // 현재 선택된 강의가 있다면 상세보기도 업데이트
+            if (selectedLesson && selectedLesson.id === lessonId) {
+                showDetail();
+            }
+        }
+
+        // 완료 상태 토글 함수 (상세보기에서)
+        function toggleCompletion() {
+            if (selectedLesson) {
+                toggleLessonCompletion(selectedLesson.id);
+            }
+        }
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress();
+            renderLessons();
+        });
+    </script>
+</body>
+</html>
