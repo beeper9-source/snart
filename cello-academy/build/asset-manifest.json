@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/snart/static/css/main.fc5834a7.css",
+    "main.js": "/snart/static/js/main.51b0ae8d.js",
+    "index.html": "/snart/index.html",
+    "main.fc5834a7.css.map": "/snart/static/css/main.fc5834a7.css.map",
+    "main.51b0ae8d.js.map": "/snart/static/js/main.51b0ae8d.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.fc5834a7.css",
+    "static/js/main.51b0ae8d.js"
+  ]
+}
