@@ -507,6 +507,110 @@
             margin-top: 0.5rem;
         }
 
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background: #f7fafc;
+            border-radius: 6px;
+        }
+
+        .play-pause-button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .play-pause-button:hover {
+            background: #059669;
+            transform: scale(1.05);
+        }
+
+        .play-pause-button.playing {
+            background: #ef4444;
+        }
+
+        .play-pause-button.playing:hover {
+            background: #dc2626;
+        }
+
+        .audio-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .audio-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .audio-progress {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .progress-bar-audio {
+            flex: 1;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress-fill-audio {
+            height: 100%;
+            background: #10b981;
+            transition: width 0.1s ease;
+        }
+
+        .time-display {
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-family: monospace;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .volume-slider {
+            width: 60px;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
         .no-files {
             text-align: center;
             color: #6b7280;
@@ -821,6 +925,8 @@
         let selectedLesson = null;
         let selectedFile = null;
         let uploadedFiles = new Map(); // lessonId -> files array
+        let currentAudio = null; // 현재 재생 중인 오디오
+        let currentAudioElement = null; // 현재 오디오 엘리먼트
 
         // 날짜 포맷팅 함수
         function formatDate(dateString) {
@@ -1140,11 +1246,6 @@
                         </div>
                     </div>
                     <div class="file-actions">
-                        <button class="file-action-button play-button" onclick="playAudio('${file.filePath}')" title="재생">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
-                            </svg>
-                        </button>
                         <button class="file-action-button download-button" onclick="downloadFile('${file.filePath}', '${file.originalName}')" title="다운로드">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -1155,6 +1256,32 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
                         </button>
+                    </div>
+                </div>
+                
+                <!-- 오디오 컨트롤 -->
+                <div class="audio-controls">
+                    <button class="play-pause-button" onclick="toggleAudioPlayback('${file.filePath}', '${file.originalName}')" title="재생/일시정지">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
+                        </svg>
+                    </button>
+                    
+                    <div class="audio-info">
+                        <div class="audio-title">${file.originalName}</div>
+                        <div class="audio-progress">
+                            <div class="progress-bar-audio" onclick="seekAudio(event)">
+                                <div class="progress-fill-audio"></div>
+                            </div>
+                            <div class="time-display">0:00 / 0:00</div>
+                        </div>
+                    </div>
+                    
+                    <div class="volume-control">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                        </svg>
+                        <input type="range" class="volume-slider" min="0" max="100" value="70" onchange="setVolume(this.value)">
                     </div>
                 </div>
             `).join('');
@@ -1169,21 +1296,163 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // 오디오 재생 함수
-        async function playAudio(filePath) {
+        // 시간 포맷팅 함수
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // 오디오 재생/일시정지 함수
+        async function toggleAudioPlayback(filePath, fileName) {
             try {
+                // 현재 재생 중인 오디오가 있고 같은 파일이면 일시정지/재생 토글
+                if (currentAudio && currentAudio.src && currentAudio.src.includes(filePath)) {
+                    if (currentAudio.paused) {
+                        await currentAudio.play();
+                        updatePlayButton(true);
+                    } else {
+                        currentAudio.pause();
+                        updatePlayButton(false);
+                    }
+                    return;
+                }
+
+                // 다른 파일이거나 새로운 파일이면 새로 로드
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio = null;
+                }
+
                 const { data } = await supabaseClient.storage
                     .from('lesson-recordings')
                     .createSignedUrl(filePath, 3600);
                 
                 if (data?.signedUrl) {
-                    const audio = new Audio(data.signedUrl);
-                    audio.play();
+                    currentAudio = new Audio(data.signedUrl);
+                    currentAudioElement = currentAudio;
+                    
+                    // 오디오 이벤트 리스너 추가
+                    setupAudioEventListeners(fileName);
+                    
+                    await currentAudio.play();
+                    updatePlayButton(true);
                 }
             } catch (error) {
                 console.error('재생 오류:', error);
                 alert('파일 재생 중 오류가 발생했습니다.');
+                updatePlayButton(false);
             }
+        }
+
+        // 오디오 이벤트 리스너 설정
+        function setupAudioEventListeners(fileName) {
+            if (!currentAudio) return;
+
+            // 재생 시작
+            currentAudio.addEventListener('play', () => {
+                updatePlayButton(true);
+            });
+
+            // 일시정지
+            currentAudio.addEventListener('pause', () => {
+                updatePlayButton(false);
+            });
+
+            // 재생 종료
+            currentAudio.addEventListener('ended', () => {
+                updatePlayButton(false);
+                updateProgressBar(0);
+            });
+
+            // 시간 업데이트
+            currentAudio.addEventListener('timeupdate', () => {
+                if (currentAudio.duration) {
+                    const progress = (currentAudio.currentTime / currentAudio.duration) * 100;
+                    updateProgressBar(progress);
+                    updateTimeDisplay(currentAudio.currentTime, currentAudio.duration);
+                }
+            });
+
+            // 메타데이터 로드
+            currentAudio.addEventListener('loadedmetadata', () => {
+                updateTimeDisplay(0, currentAudio.duration);
+            });
+
+            // 오류 처리
+            currentAudio.addEventListener('error', (e) => {
+                console.error('오디오 오류:', e);
+                updatePlayButton(false);
+            });
+        }
+
+        // 재생 버튼 상태 업데이트
+        function updatePlayButton(isPlaying) {
+            const playButtons = document.querySelectorAll('.play-pause-button');
+            playButtons.forEach(button => {
+                if (isPlaying) {
+                    button.classList.add('playing');
+                    button.innerHTML = `
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    `;
+                } else {
+                    button.classList.remove('playing');
+                    button.innerHTML = `
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
+                        </svg>
+                    `;
+                }
+            });
+        }
+
+        // 진행률 바 업데이트
+        function updateProgressBar(progress) {
+            const progressBars = document.querySelectorAll('.progress-fill-audio');
+            progressBars.forEach(bar => {
+                bar.style.width = `${progress}%`;
+            });
+        }
+
+        // 시간 표시 업데이트
+        function updateTimeDisplay(currentTime, duration) {
+            const timeDisplays = document.querySelectorAll('.time-display');
+            timeDisplays.forEach(display => {
+                display.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
+            });
+        }
+
+        // 오디오 정지 함수
+        function stopAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                updatePlayButton(false);
+                updateProgressBar(0);
+                updateTimeDisplay(0, currentAudio.duration || 0);
+            }
+        }
+
+        // 볼륨 조절 함수
+        function setVolume(volume) {
+            if (currentAudio) {
+                currentAudio.volume = volume / 100;
+            }
+        }
+
+        // 진행률 바 클릭으로 시간 이동
+        function seekAudio(event) {
+            if (!currentAudio || !currentAudio.duration) return;
+            
+            const progressBar = event.currentTarget;
+            const rect = progressBar.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const percentage = clickX / rect.width;
+            const newTime = percentage * currentAudio.duration;
+            
+            currentAudio.currentTime = newTime;
         }
 
         // 파일 다운로드 함수
