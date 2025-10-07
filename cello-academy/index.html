@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>첼로 아카데미</title>
+    <!-- Supabase CDN -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         /* 첼로 아카데미 앱 스타일 */
         * {
@@ -344,6 +346,176 @@
             display: none;
         }
 
+        /* 파일 업로드 관련 스타일 */
+        .file-upload-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .file-upload-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            background: #f7fafc;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+
+        .file-upload-area:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .file-upload-area.dragover {
+            border-color: #667eea;
+            background: #e6fffa;
+        }
+
+        .upload-icon {
+            width: 2rem;
+            height: 2rem;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-text {
+            color: #4a5568;
+            font-size: 0.875rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 0.5rem;
+        }
+
+        .upload-button:hover {
+            background: #5a67d8;
+        }
+
+        .upload-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .upload-progress {
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .upload-progress-bar {
+            height: 100%;
+            background: #667eea;
+            transition: width 0.3s ease;
+        }
+
+        .uploaded-files {
+            margin-top: 1rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: #f7fafc;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .file-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #667eea;
+        }
+
+        .file-name {
+            font-size: 0.875rem;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .file-size {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .file-action-button {
+            background: none;
+            border: none;
+            padding: 0.25rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .file-action-button:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .play-button {
+            color: #10b981;
+        }
+
+        .download-button {
+            color: #3b82f6;
+        }
+
+        .delete-button {
+            color: #ef4444;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .no-files {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.875rem;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 6px;
+        }
+
         /* 반응형 디자인 */
         @media (max-width: 1024px) {
             .main-content {
@@ -442,11 +614,45 @@
                         <button class="action-button" id="actionButton" onclick="toggleCompletion()"></button>
                     </div>
                 </div>
+                
+                <!-- 파일 업로드 섹션 -->
+                <div class="file-upload-section">
+                    <h3 class="file-upload-title">레슨 녹음 파일</h3>
+                    
+                    <div class="file-upload-area" id="fileUploadArea" onclick="document.getElementById('fileInput').click()">
+                        <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        <div class="upload-text">
+                            <div>파일을 드래그하거나 클릭하여 업로드</div>
+                            <div style="font-size: 0.75rem; margin-top: 0.25rem;">MP3, WAV, M4A 파일 지원</div>
+                        </div>
+                        <button class="upload-button" id="uploadButton" onclick="event.stopPropagation(); uploadFile()" disabled>
+                            업로드
+                        </button>
+                    </div>
+                    
+                    <input type="file" id="fileInput" class="file-input" accept="audio/*" onchange="handleFileSelect(event)">
+                    
+                    <div class="upload-progress hidden" id="uploadProgress">
+                        <div class="upload-progress-bar" id="uploadProgressBar"></div>
+                    </div>
+                    
+                    <div class="uploaded-files" id="uploadedFiles">
+                        <div class="no-files">아직 업로드된 파일이 없습니다.</div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
 
     <script>
+        // Supabase 설정
+        const SUPABASE_URL = 'https://dmgtwzbvpualecnrcyug.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtZ3R3emJ2cHVhbGVjbnJjeXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxMzAzODUsImV4cCI6MjA3MjcwNjM4NX0.Cddfcij0GL3lLCZz51tALcyKULfGECyq4YNpjVh9Uf4';
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
         // 첼로 아카데미 강의 일정 데이터
         const lessons = [
             {
@@ -613,6 +819,8 @@
 
         let completedLessons = new Set();
         let selectedLesson = null;
+        let selectedFile = null;
+        let uploadedFiles = new Map(); // lessonId -> files array
 
         // 날짜 포맷팅 함수
         function formatDate(dateString) {
@@ -747,7 +955,7 @@
         }
 
         // 상세보기 표시 함수
-        function showDetail() {
+        async function showDetail() {
             if (!selectedLesson) return;
             
             const detailElement = document.getElementById('lessonDetail');
@@ -769,6 +977,10 @@
             
             detailElement.classList.remove('hidden');
             renderLessons(); // 선택 상태 업데이트
+            
+            // 해당 강의의 파일 목록 로드
+            await loadLessonFiles(selectedLesson.id);
+            renderUploadedFiles();
         }
 
         // 상세보기 닫기 함수
@@ -801,10 +1013,309 @@
             }
         }
 
+        // 파일 선택 처리 함수
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('uploadButton').disabled = false;
+                
+                // 파일 크기 확인 (50MB 제한)
+                if (file.size > 50 * 1024 * 1024) {
+                    alert('파일 크기는 50MB를 초과할 수 없습니다.');
+                    selectedFile = null;
+                    document.getElementById('uploadButton').disabled = true;
+                    return;
+                }
+                
+                // 오디오 파일 형식 확인
+                if (!file.type.startsWith('audio/')) {
+                    alert('오디오 파일만 업로드할 수 있습니다.');
+                    selectedFile = null;
+                    document.getElementById('uploadButton').disabled = true;
+                    return;
+                }
+            }
+        }
+
+        // 파일 업로드 함수
+        async function uploadFile() {
+            if (!selectedFile || !selectedLesson) return;
+            
+            const uploadButton = document.getElementById('uploadButton');
+            const uploadProgress = document.getElementById('uploadProgress');
+            const uploadProgressBar = document.getElementById('uploadProgressBar');
+            
+            uploadButton.disabled = true;
+            uploadProgress.classList.remove('hidden');
+            
+            try {
+                // 파일명 생성 (lessonId_timestamp.extension)
+                const timestamp = Date.now();
+                const fileExtension = selectedFile.name.split('.').pop();
+                const fileName = `lesson_${selectedLesson.id}_${timestamp}.${fileExtension}`;
+                
+                // Supabase Storage에 파일 업로드
+                const { data, error } = await supabaseClient.storage
+                    .from('lesson-recordings')
+                    .upload(fileName, selectedFile, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                // 데이터베이스에 파일 정보 저장
+                const { error: dbError } = await supabaseClient
+                    .from('lesson_files')
+                    .insert({
+                        lesson_id: selectedLesson.id,
+                        file_name: fileName,
+                        original_name: selectedFile.name,
+                        file_size: selectedFile.size,
+                        file_path: data.path,
+                        uploaded_at: new Date().toISOString()
+                    });
+                
+                if (dbError) {
+                    throw dbError;
+                }
+                
+                // 로컬 상태 업데이트
+                if (!uploadedFiles.has(selectedLesson.id)) {
+                    uploadedFiles.set(selectedLesson.id, []);
+                }
+                
+                uploadedFiles.get(selectedLesson.id).push({
+                    id: timestamp,
+                    fileName: fileName,
+                    originalName: selectedFile.name,
+                    fileSize: selectedFile.size,
+                    filePath: data.path,
+                    uploadedAt: new Date().toISOString()
+                });
+                
+                // UI 업데이트
+                renderUploadedFiles();
+                
+                // 초기화
+                selectedFile = null;
+                document.getElementById('fileInput').value = '';
+                uploadButton.disabled = true;
+                
+                alert('파일이 성공적으로 업로드되었습니다!');
+                
+            } catch (error) {
+                console.error('업로드 오류:', error);
+                alert('파일 업로드 중 오류가 발생했습니다: ' + error.message);
+            } finally {
+                uploadProgress.classList.add('hidden');
+                uploadProgressBar.style.width = '0%';
+            }
+        }
+
+        // 업로드된 파일 목록 렌더링
+        function renderUploadedFiles() {
+            if (!selectedLesson) return;
+            
+            const uploadedFilesContainer = document.getElementById('uploadedFiles');
+            const files = uploadedFiles.get(selectedLesson.id) || [];
+            
+            if (files.length === 0) {
+                uploadedFilesContainer.innerHTML = '<div class="no-files">아직 업로드된 파일이 없습니다.</div>';
+                return;
+            }
+            
+            uploadedFilesContainer.innerHTML = files.map(file => `
+                <div class="file-item">
+                    <div class="file-info">
+                        <svg class="file-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                        </svg>
+                        <div>
+                            <div class="file-name">${file.originalName}</div>
+                            <div class="file-size">${formatFileSize(file.fileSize)}</div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="file-action-button play-button" onclick="playAudio('${file.filePath}')" title="재생">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
+                            </svg>
+                        </button>
+                        <button class="file-action-button download-button" onclick="downloadFile('${file.filePath}', '${file.originalName}')" title="다운로드">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </button>
+                        <button class="file-action-button delete-button" onclick="deleteFile(${file.id})" title="삭제">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 파일 크기 포맷팅 함수
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 오디오 재생 함수
+        async function playAudio(filePath) {
+            try {
+                const { data } = await supabaseClient.storage
+                    .from('lesson-recordings')
+                    .createSignedUrl(filePath, 3600);
+                
+                if (data?.signedUrl) {
+                    const audio = new Audio(data.signedUrl);
+                    audio.play();
+                }
+            } catch (error) {
+                console.error('재생 오류:', error);
+                alert('파일 재생 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 파일 다운로드 함수
+        async function downloadFile(filePath, originalName) {
+            try {
+                const { data } = await supabaseClient.storage
+                    .from('lesson-recordings')
+                    .createSignedUrl(filePath, 3600);
+                
+                if (data?.signedUrl) {
+                    const link = document.createElement('a');
+                    link.href = data.signedUrl;
+                    link.download = originalName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            } catch (error) {
+                console.error('다운로드 오류:', error);
+                alert('파일 다운로드 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 파일 삭제 함수
+        async function deleteFile(fileId) {
+            if (!confirm('정말로 이 파일을 삭제하시겠습니까?')) return;
+            
+            try {
+                const files = uploadedFiles.get(selectedLesson.id) || [];
+                const file = files.find(f => f.id === fileId);
+                
+                if (!file) return;
+                
+                // Supabase Storage에서 파일 삭제
+                const { error: storageError } = await supabaseClient.storage
+                    .from('lesson-recordings')
+                    .remove([file.filePath]);
+                
+                if (storageError) {
+                    throw storageError;
+                }
+                
+                // 데이터베이스에서 파일 정보 삭제
+                const { error: dbError } = await supabaseClient
+                    .from('lesson_files')
+                    .delete()
+                    .eq('file_path', file.filePath);
+                
+                if (dbError) {
+                    throw dbError;
+                }
+                
+                // 로컬 상태 업데이트
+                const updatedFiles = files.filter(f => f.id !== fileId);
+                uploadedFiles.set(selectedLesson.id, updatedFiles);
+                
+                // UI 업데이트
+                renderUploadedFiles();
+                
+                alert('파일이 성공적으로 삭제되었습니다.');
+                
+            } catch (error) {
+                console.error('삭제 오류:', error);
+                alert('파일 삭제 중 오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        // 강의별 파일 목록 로드 함수
+        async function loadLessonFiles(lessonId) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('lesson_files')
+                    .select('*')
+                    .eq('lesson_id', lessonId)
+                    .order('uploaded_at', { ascending: false });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                const files = data.map(file => ({
+                    id: new Date(file.uploaded_at).getTime(),
+                    fileName: file.file_name,
+                    originalName: file.original_name,
+                    fileSize: file.file_size,
+                    filePath: file.file_path,
+                    uploadedAt: file.uploaded_at
+                }));
+                
+                uploadedFiles.set(lessonId, files);
+                
+            } catch (error) {
+                console.error('파일 목록 로드 오류:', error);
+                uploadedFiles.set(lessonId, []);
+            }
+        }
+
+        // 드래그 앤 드롭 이벤트 처리
+        function setupDragAndDrop() {
+            const uploadArea = document.getElementById('fileUploadArea');
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('audio/')) {
+                        selectedFile = file;
+                        document.getElementById('uploadButton').disabled = false;
+                    } else {
+                        alert('오디오 파일만 업로드할 수 있습니다.');
+                    }
+                }
+            });
+        }
+
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', function() {
             updateProgress();
             renderLessons();
+            setupDragAndDrop();
         });
     </script>
 </body>
